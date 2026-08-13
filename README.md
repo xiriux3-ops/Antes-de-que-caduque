@@ -2,6 +2,8 @@
 
 Aplicación Android y web instalable para registrar productos y recibir avisos antes de su fecha de caducidad.
 
+La versión 0.2 incorpora una identidad visual renovada, un logotipo propio, tarjetas con indicadores de tiempo y recursos de lanzamiento adaptados para Android.
+
 ## Funciones de esta primera versión
 
 - Alta, edición y eliminación de productos.

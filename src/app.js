@@ -50,54 +50,81 @@ function filteredProducts() {
   return sortByExpiry(state.products).filter((product) => matchesProduct(product, state.query, state.filter));
 }
 
+function categorySymbol(category) {
+  return ({
+    Alimentos: '●',
+    Medicamentos: '✚',
+    'Cosméticos': '✦',
+    Limpieza: '◇',
+    Reactivos: '⚗',
+    Mascotas: '♡',
+    Otro: '•'
+  })[category] || '•';
+}
+
+function statusProgress(status) {
+  return ({ expired: 100, today: 100, urgent: 86, soon: 58, safe: 24 })[status] || 24;
+}
+
+function insightCopy(totals) {
+  if (!totals.total) return { title: 'Empieza sin complicaciones.', text: 'Registra tu primer producto y te avisaremos a tiempo.' };
+  if (totals.expired) return { title: `${totals.expired} ${plural(totals.expired, 'producto requiere', 'productos requieren')} atención.`, text: 'Revisa los productos caducados antes de usar los demás.' };
+  if (totals.attention) return { title: `${totals.attention} ${plural(totals.attention, 'producto vence', 'productos vencen')} pronto.`, text: 'Úsalos primero y evita que terminen en la basura.' };
+  return { title: 'Todo está bajo control.', text: 'No tienes productos próximos a caducar.' };
+}
+
 function productCard(product) {
   const status = expiryState(product.expiryDate);
   return `
     <button class="product" data-edit="${product.id}" aria-label="Editar ${escapeHtml(product.name)}">
       <div class="product-main">
+        <span class="category-icon category-${status.key}" aria-hidden="true">${categorySymbol(product.category)}</span>
         <div class="product-info">
-          <h3>${escapeHtml(product.name)}</h3>
+          <div class="product-title-row"><h3>${escapeHtml(product.name)}</h3><span class="state-pill ${status.key}">${status.label}</span></div>
           <div class="product-meta"><span>${escapeHtml(product.category)}</span>${product.quantity ? `<i class="dot"></i><span>${escapeHtml(product.quantity)}</span>` : ''}</div>
         </div>
-        <span class="state-pill ${status.key}">${status.label}</span>
       </div>
-      <div class="expiry-line"><span>Fecha de caducidad</span><strong>${formatDate(product.expiryDate)}</strong></div>
+      <div class="expiry-line"><span>Caducidad</span><strong>${formatDate(product.expiryDate)}</strong></div>
+      <div class="time-track"><i class="${status.key}" style="width:${statusProgress(status.key)}%"></i></div>
     </button>`;
 }
 
 function render() {
   const totals = summary();
   const products = filteredProducts();
+  const insight = insightCopy(totals);
   document.querySelector('#app').innerHTML = `
     <main class="app-shell">
       <header class="hero">
+        <i class="hero-glow hero-glow-one"></i><i class="hero-glow hero-glow-two"></i>
         <div class="topline">
-          <div class="brand"><img class="brand-mark" src="/icon.svg" alt=""><div><p class="eyebrow">Mi inventario</p><h1>Antes de que caduque</h1></div></div>
+          <div class="brand"><img class="brand-mark" src="/icon.svg" alt=""><div><p class="eyebrow">Antes de que caduque</p><h1>Caduca</h1></div></div>
           <button class="icon-button" id="notificationButton" aria-label="Configurar avisos" title="Configurar avisos">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
           </button>
         </div>
-        <div class="hero-copy"><h2>Usa primero lo que caduca primero.</h2><p>Organiza, recibe avisos y evita desperdiciar.</p></div>
+        <div class="hero-copy"><span class="hero-kicker"><i></i>Resumen de hoy</span><h2>${insight.title}</h2><p>${insight.text}</p></div>
       </header>
       <section class="summary-grid" aria-label="Resumen">
-        <div class="summary-card"><strong>${totals.total}</strong><span>${plural(totals.total, 'producto', 'productos')}</span></div>
-        <div class="summary-card attention"><strong>${totals.attention}</strong><span>por vencer</span></div>
-        <div class="summary-card expired"><strong>${totals.expired}</strong><span>caducados</span></div>
+        <div class="summary-card"><i class="summary-dot total"></i><div><strong>${totals.total}</strong><span>${plural(totals.total, 'producto', 'productos')}</span></div></div>
+        <div class="summary-card attention"><i class="summary-dot"></i><div><strong>${totals.attention}</strong><span>por vencer</span></div></div>
+        <div class="summary-card expired"><i class="summary-dot"></i><div><strong>${totals.expired}</strong><span>caducados</span></div></div>
       </section>
       <section class="content">
+        <button class="primary-action" id="addButtonTop"><span class="action-icon">+</span><span><strong>Agregar producto</strong><small>Registra su fecha manualmente</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button>
         <div class="search-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input class="search" id="search" value="${escapeHtml(state.query)}" placeholder="Buscar producto o categoría" aria-label="Buscar">
+          <input class="search" id="search" value="${escapeHtml(state.query)}" placeholder="Buscar en tu inventario" aria-label="Buscar">
         </div>
         <div class="filters">
           ${[['all','Todos'],['attention','Por vencer'],['expired','Caducados'],['active','Vigentes']].map(([key,label]) => `<button class="filter ${state.filter === key ? 'active' : ''}" data-filter="${key}">${label}</button>`).join('')}
         </div>
-        <div class="section-head"><h2>${state.filter === 'attention' ? 'Requieren atención' : 'Tus productos'}</h2><span>${products.length} ${plural(products.length, 'resultado', 'resultados')}</span></div>
+        <div class="section-head"><div><p class="section-label">Organiza y utiliza</p><h2>${state.filter === 'attention' ? 'Requieren atención' : 'Tu inventario'}</h2></div><span>${products.length} ${plural(products.length, 'producto', 'productos')}</span></div>
         <div class="product-list">
-          ${products.length ? products.map(productCard).join('') : `<div class="empty"><div class="empty-icon">◷</div><h3>${state.products.length ? 'No encontramos resultados' : 'Tu inventario está vacío'}</h3><p>${state.products.length ? 'Prueba con otra búsqueda o filtro.' : 'Agrega tu primer producto y te avisaremos antes de que caduque.'}</p></div>`}
+          ${products.length ? products.map(productCard).join('') : `<div class="empty"><img class="empty-icon" src="/icon.svg" alt=""><h3>${state.products.length ? 'No encontramos resultados' : 'Tu inventario está listo'}</h3><p>${state.products.length ? 'Prueba con otra búsqueda o selecciona otro filtro.' : 'Agrega tu primer producto para comenzar a recibir avisos.'}</p>${!state.products.length ? '<button class="empty-button" id="emptyAddButton">Agregar el primero</button>' : ''}</div>`}
         </div>
       </section>
-      <button class="fab" id="addButton" aria-label="Agregar producto">+</button>
+      <button class="fab" id="addButton" aria-label="Agregar producto"><span>+</span><b>Agregar</b></button>
       ${state.modalOpen ? modalTemplate() : ''}
       ${state.toast ? `<div class="toast" role="status">${escapeHtml(state.toast)}</div>` : ''}
     </main>`;
@@ -113,7 +140,7 @@ function modalTemplate() {
     <div class="backdrop" id="backdrop">
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="handle"></div>
-        <div class="modal-head"><h2 id="modalTitle">${product ? 'Editar producto' : 'Nuevo producto'}</h2><button class="close" id="closeModal" aria-label="Cerrar">×</button></div>
+        <div class="modal-head"><div><p class="modal-eyebrow">${product ? 'Actualiza la información' : 'Cuida lo que compras'}</p><h2 id="modalTitle">${product ? 'Editar producto' : 'Nuevo producto'}</h2></div><button class="close" id="closeModal" aria-label="Cerrar">×</button></div>
         <form class="form" id="productForm">
           <div class="field"><label for="name">Nombre del producto *</label><input id="name" name="name" maxlength="80" required autofocus placeholder="Ej. Leche deslactosada" value="${escapeHtml(product?.name || '')}"></div>
           <div class="two-cols">
@@ -131,6 +158,8 @@ function modalTemplate() {
 
 function bindEvents() {
   document.querySelector('#addButton')?.addEventListener('click', () => openModal());
+  document.querySelector('#addButtonTop')?.addEventListener('click', () => openModal());
+  document.querySelector('#emptyAddButton')?.addEventListener('click', () => openModal());
   document.querySelector('#notificationButton')?.addEventListener('click', requestNotificationPermission);
   document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => { state.filter = button.dataset.filter; render(); }));
   document.querySelectorAll('[data-edit]').forEach((button) => button.addEventListener('click', () => openModal(button.dataset.edit)));

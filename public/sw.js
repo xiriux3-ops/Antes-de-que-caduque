@@ -1,4 +1,4 @@
-const CACHE = 'caducidades-v1';
+const CACHE = 'caducidades-v2';
 const CORE = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
 
 self.addEventListener('install', (event) => {

@@ -1,16 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="bg" x1="72" y1="36" x2="434" y2="480" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#246C50"/>
-      <stop offset="1" stop-color="#123C2D"/>
-    </linearGradient>
     <filter id="shadow" x="70" y="76" width="392" height="402" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0A2B20" flood-opacity=".34"/>
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#09261C" flood-opacity=".28"/>
     </filter>
     <clipPath id="paper"><rect x="108" y="112" width="296" height="300" rx="66"/></clipPath>
   </defs>
-  <rect width="512" height="512" rx="118" fill="url(#bg)"/>
-  <circle cx="428" cy="86" r="82" fill="#F6BE51" opacity=".12"/>
   <g filter="url(#shadow)" transform="rotate(-3 256 262)">
     <rect x="108" y="112" width="296" height="300" rx="66" fill="#FBFAF4"/>
     <rect x="108" y="112" width="296" height="102" fill="#F4B94E" clip-path="url(#paper)"/>
