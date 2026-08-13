@@ -1,0 +1,13 @@
+{
+  "name": "Antes de que caduque",
+  "short_name": "Caducidades",
+  "description": "Registra productos y recibe avisos antes de que caduquen.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f7f2",
+  "theme_color": "#276149",
+  "lang": "es-MX",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
